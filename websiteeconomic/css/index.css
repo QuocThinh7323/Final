@@ -1,0 +1,130 @@
+/* Hiệu ứng hover cho sản phẩm */
+.featured__item {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.featured__item:hover {
+    transform: scale(1.05);
+    /* Tăng kích thước sản phẩm khi hover */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    /* Thêm bóng khi hover */
+}
+
+.featured__item__pic {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Thêm hiệu ứng cho ảnh sản phẩm */
+.featured__item__pic img {
+    transition: transform 0.3s ease-in-out;
+}
+
+.featured__item__pic:hover img {
+    transform: scale(1.1);
+    /* Phóng to ảnh khi hover */
+}
+
+/* Thêm hiệu ứng hover cho phần Blog */
+.blog__item {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.blog__item:hover {
+    transform: scale(1.05);
+    /* Phóng to mục blog khi hover */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    /* Thêm bóng mờ khi hover */
+}
+
+.blog__item__pic {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Thêm hiệu ứng cho ảnh blog khi hover */
+.blog__item__pic img {
+    transition: transform 0.3s ease-in-out;
+}
+
+.blog__item__pic:hover img {
+    transform: scale(1.1);
+    /* Phóng to ảnh khi hover */
+}
+
+/* Thay đổi màu tiêu đề và thêm hiệu ứng hover */
+.blog__item__text h5 a {
+    color: #333;
+    transition: color 0.3s ease-in-out;
+    text-decoration: none;
+    /* Xóa gạch chân */
+}
+
+.blog__item__text h5 a:hover {
+    color: #007bff;
+    /* Thay đổi màu tiêu đề khi hover */
+}
+
+.new-arrivals,
+.featured {
+    margin-bottom: 0;
+    /* Giảm khoảng trắng ở dưới section "New Arrivals" */
+    padding-bottom: 0;
+    /* Nếu có padding, bạn cũng có thể điều chỉnh */
+}
+
+.featured {
+    margin-top: 0;
+    /* Giảm khoảng trắng ở trên section "Featured Product" */
+    padding-top: 0;
+    /* Nếu có padding, bạn cũng có thể điều chỉnh */
+
+}
+/* Reduce space above the first section */
+.new-arrivals {
+    padding-top: 10px;
+    /* Adjust this value as needed */
+    margin-top: 0px;
+    /* Ensure no extra margin */
+}
+.rating i.fa-star,
+.rating i.fa-star-o {
+    color: gold;
+    /* Yellow color for stars */
+    font-size: 16px;
+    /* Adjust the size of stars if needed */
+}
+
+.banner {
+    margin-bottom: 10px;
+    /* Adjust as needed */
+    padding-bottom: 0px;
+    /* Remove padding if any */
+}
+
+
+.hero__banner .item {
+    height: 400px !important;
+    /* Adjust as necessary */
+}
+
+.hero__banner .item img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+.hero__banner {
+    max-width: 1150px;
+    /* Adjust width as needed */
+    margin: 0 auto;
+    
+}
+
+.hero__categories__all {
+    background: #6c757d;
+    position: relative;
+    padding: 10px 25px 10px 40px;
+    cursor: pointer;
+}
+
