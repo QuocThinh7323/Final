@@ -1,11 +1,10 @@
 <?php
 
-// echo "xin chao";
+
 
 
 require('../db/conn.php');
 
-//lay du lieu tu form
 $name = $_POST['name'];
 $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name)));
 $sumary = $_POST['sumary'];
@@ -13,7 +12,7 @@ $description = $_POST['description'];
 
 $category = $_POST['category'];
 
-//xu ly hinh anh
+
 
 // $imgs = '';
 // for ($i = 0; $i < $countfiles; $i++) {
@@ -32,7 +31,7 @@ $response = 0;
 ## Check file extension
 if (in_array(strtolower($extension), $valid_extensions)) {
 
-    // them vao CSDL - them thah cong moi upload anh len
+   
     ## Upload file
     //$_FILES['file']['tmp_name']: $_FILES['file']['tmp_name'] - The temporary filename of the file in which the uploaded file was stored on the server.
     if (move_uploaded_file($_FILES['anh']['tmp_name'], $location)) {
@@ -46,7 +45,7 @@ if (in_array(strtolower($extension), $valid_extensions)) {
 
 // echo substr($imgs, 0, -1); exit;
 
-// cau lenh them vao bang
+
 $sql_str = "INSERT INTO `news` (`title`, `avatar`, `slug`, `sumary`, `description`, `newscategory_id`, `created_at`, `updated_at`) VALUES 
     ('$name', 
     '$location',
@@ -58,9 +57,9 @@ $sql_str = "INSERT INTO `news` (`title`, `avatar`, `slug`, `sumary`, `descriptio
 // echo $sql_str;
 // exit;
 
-//thuc thi cau lenh
+
 mysqli_query($conn, $sql_str);
 
-//tro ve trang 
+
 header("location: ./listnews.php");
 ?>

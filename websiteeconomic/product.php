@@ -16,10 +16,10 @@ if (isset($_SESSION['user_id'])) {
     $result = mysqli_query($conn, $sql_str);
     $role_row = mysqli_fetch_assoc($result);
 
-    // Kiểm tra và gán giá trị cho biến $user_role
+   
     $user_role = $role_row ? $role_row['role_name'] : null;
 } else {
-    // Người dùng chưa đăng nhập, gán giá trị null cho $user_role
+  
     $user_role = null;
 }
 
@@ -138,31 +138,31 @@ $total_reviews = $feedback_data['total_reviews'];
     <style>
         .product__details__rating i {
             color: #FFD700;
-            /* Màu mặc định cho sao, không có tô đen */
+           
             font-weight: normal;
-            /* Đảm bảo không có tô đen */
+         
         }
 
         h5 {
             font-weight: normal;
-            /* Không có tô đen cho giá */
+          
         }
 
         .rating i {
             color: #FFD700;
-            /* Default star color (light gray) */
+           
         }
 
         .rating i.fas {
             color: #ffcc00;
-            /* Yellow color for filled stars */
+          
         }
     </style>
 </head>
 
 <body>
 
-    <!-- Breadcrumb Section Begin -->
+    
     <section class="breadcrumb-section set-bg" data-setbg="img/banner/bannerbackround.jpeg">
         <div class="container">
             <div class="row">
@@ -305,7 +305,7 @@ $total_reviews = $feedback_data['total_reviews'];
             </div>
             <div class="row">
                 <?php
-                // Tìm các sản phẩm liên quan cùng category_id với sản phẩm này
+              
                 $cid = $row['category_id'];
                 $sql2 = "SELECT * FROM products WHERE category_id = $cid AND id <> $pid";
                 $result2 = mysqli_query($conn, $sql2);
@@ -341,7 +341,7 @@ $total_reviews = $feedback_data['total_reviews'];
                                     </span>
                                 </div>
 
-                                <!-- Hiển thị giá với độ mờ cho giá giảm -->
+                              
                                 <?php if ($row2['disscounted_price'] > 0): ?>
                                     <h5>
                                         <span class="discounted-price">$<?= $row2['disscounted_price'] ?></span>

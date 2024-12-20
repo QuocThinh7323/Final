@@ -1,185 +1,157 @@
 <?php
-// Get total amount from URL
-$total = isset($_GET['total']) ? floatval($_GET['total']) : 0;
+session_start();
+require_once('./db/conn.php');
 
-// Check if the order ID is present
+
+$payment_method = isset($_GET['method']) ? $_GET['method'] : 'bank_transfer';
+
+
+$totalcheckout = isset($_GET['total']) ? floatval($_GET['total']) : 0;
 $order_id = isset($_GET['order_id']) ? intval($_GET['order_id']) : 0;
 
-if ($order_id == 0) {
-    // Redirect back to checkout if no valid order ID
+
+if ($order_id <= 0) {
     header("Location: checkout.php");
     exit();
 }
+
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $success = false;
+
+    if ($payment_method === 'bank_transfer') {
+     
+        $bank_name = $_POST['bank_name'] ?? '';
+        $account_number = $_POST['account_number'] ?? '';
+        $transfer_date = $_POST['transfer_date'] ?? '';
+
+       
+        $success = true; 
+    } elseif ($payment_method === 'card_payment') {
+       
+        $cardholder_name = $_POST['cardholder_name'] ?? '';
+        $card_number = $_POST['card_number'] ?? '';
+        $expiry_date = $_POST['expiry_date'] ?? '';
+
+        $success = true; 
+    }
+
+    
+    if ($success) {
+        header("Location: thankyou.php?order_id=$order_id&method=$payment_method");
+        exit();
+    }
+}
 ?>
 
-    <!DOCTYPE html>
-    <html lang="en">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Information</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Card Payment Interface</title>
-         <!-- jQuery UI CSS -->
-        <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+        .payment-container {
+            background-color: white;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            max-width: 400px;
+            width: 100%;
+        }
 
-        <!-- jQuery and jQuery UI JS -->
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        .payment-header {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
 
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background-color: #f5f5f5;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-            }
+        .form-group {
+            margin-bottom: 15px;
+        }
 
-            .payment-container {
-                background-color: white;
-                padding: 30px;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-                border-radius: 10px;
-                max-width: 400px;
-                width: 100%;
-            }
+        .form-group label {
+            font-size: 14px;
+            color: #555;
+        }
 
-            .payment-header {
-                font-size: 18px;
-                margin-bottom: 20px;
-                color: #333;
-                text-align: center;
-            }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
 
-            .payment-form {
-                display: flex;
-                flex-direction: column;
-            }
+        .btn-submit {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
 
-            .form-group {
-                margin-bottom: 15px;
-            }
+        .btn-submit:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
 
-            .form-group label {
-                font-size: 14px;
-                color: #555;
-            }
+<div class="payment-container">
+    <h2 class="payment-header">
+        <?php echo ucfirst(str_replace('_', ' ', $payment_method)); ?> Information
+    </h2>
 
-            .form-group input {
-                width: 100%;
-                padding: 10px;
-                font-size: 14px;
-                margin-top: 5px;
-                border: 1px solid #ccc;
-                border-radius: 5px;
-            }
-
-            .form-group input:focus {
-                border-color: #007bff;
-            }
-
-            .payment-summary {
-                font-size: 16px;
-                margin-bottom: 20px;
-                text-align: center;
-                color: red;
-                font-weight: bold;
-            }
-
-            .btn-container {
-                display: flex;
-                justify-content: space-between;
-            }
-
-            .btn {
-                padding: 10px 20px;
-                font-size: 14px;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-                color: white;
-            }
-
-            .btn-submit {
-                background-color: #007bff;
-            }
-
-            .btn-cancel {
-                background-color: #ccc;
-                color: #333;
-            }
-
-            .btn:hover {
-                opacity: 0.9;
-            }
-        </style>
-    </head>
-
-    <body>
-
-    <div class="payment-container">
-        <h2 class="payment-header">Card Payment</h2>
-
-        <div class="payment-summary">
-            Total Amount: $ <?php echo number_format($total, 0); ?> 
-        </div>
-
-        <form action="process_payment.php" method="POST" class="payment-form">
-            <!-- Card Holder Name -->
+    <form action="bank_transfer_info.php?method=<?php echo $payment_method; ?>&order_id=<?php echo $order_id; ?>&total=<?php echo $totalcheckout; ?>" method="POST">
+        <?php if ($payment_method === 'bank_transfer'): ?>
+            <!-- Form Bank Transfer -->
             <div class="form-group">
-                <label for="cardholder-name">Card Holder Name</label>
-                <input type="text" id="cardholder-name" name="cardholder_name" required>
+                <label for="bank_name">Bank Name</label>
+                <input type="text" id="bank_name" name="bank_name" required>
             </div>
-
-            <!-- Card Number -->
             <div class="form-group">
-                <label for="card-number">Card Number</label>
-                <input type="text" id="card-number" name="card_number" maxlength="16" required>
+                <label for="account_number">Account Number</label>
+                <input type="text" id="account_number" name="account_number" required>
             </div>
-
-            <!-- Expiry Date with Datepicker -->
             <div class="form-group">
-                <label for="expiry-date">Expiry Date (MM/YY)</label>
-                <input type="text" id="expiry-date" name="expiry_date" required>    
+                <label for="transfer_date">Transfer Date</label>
+                <input type="date" id="transfer_date" name="transfer_date" required>
             </div>
 
-            <div class="btn-container">
-                <button type="submit" class="btn btn-submit">Submit</button>
-                <!-- <button type="button" class="btn btn-cancel" onclick="window.location.href='checkout.php'">Cancel</button> -->
+        <?php elseif ($payment_method === 'card_payment'): ?>
+            <!-- Form Card Payment -->
+            <div class="form-group">
+                <label for="cardholder_name">Card Holder Name</label>
+                <input type="text" id="cardholder_name" name="cardholder_name" required>
             </div>
-        </form>
-    </div>
+            <div class="form-group">
+                <label for="card_number">Card Number</label>
+                <input type="text" id="card_number" name="card_number" maxlength="16" required>
+            </div>
+            <div class="form-group">
+                <label for="expiry_date">Expiry Date (MM/YY)</label>
+                <input type="text" id="expiry_date" name="expiry_date" required>
+            </div>
+        <?php endif; ?>
 
-    <script>
-        // Sử dụng jQuery UI Datepicker
-        $(document).ready(function () {
-            $('#expiry-date').datepicker({
-                dateFormat: 'mm/yy',
-                changeMonth: true,
-                changeYear: true,
-                showButtonPanel: true,
-
-                // Để chỉ chọn tháng và năm
-                onClose: function(dateText, inst) { 
-                    var month = $("#ui-datepicker-div .ui-datepicker-month :selected").val();
-                    var year = $("#ui-datepicker-div .ui-datepicker-year :selected").val();
-                    $(this).val($.datepicker.formatDate('mm/yy', new Date(year, month, 1)));
-                }
-            });
-
-            // Chỉ hiện thị tháng và năm trong trường datepicker
-            $('#expiry-date').focus(function () {
-                $(".ui-datepicker-calendar").hide();
-            });
-        });
-    </script>
+        <button type="submit" class="btn-submit">Submit</button>
+    </form>
+</div>
 
 </body>
-
-
-    </html>
-
-<?php
-    // require_once('components/footer.php');
-?>
+</html>

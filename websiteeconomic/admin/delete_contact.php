@@ -1,6 +1,6 @@
 <?php 
 session_start();
-require_once('./db/conn.php');
+require_once('../db/conn.php');
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $id = $_POST['id'];

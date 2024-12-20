@@ -19,8 +19,8 @@
                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">
                     <?php if (isset($_SESSION['user_id'])) : ?>
-                        <a href="../profile.php" class="btn btn-outline-primary btn-sm">
-                            <i class="ti-user"></i> Hi, <?php echo htmlspecialchars($_SESSION['username']); ?>
+                        <!-- <a href="#" class="btn btn-outline-primary btn-sm"> -->
+                            <!-- <i class="ti-user"></i> Hi, <?php echo htmlspecialchars($_SESSION['username']); ?> -->
                         </a>
                         <a href="../logout.php" class="btn btn-outline-danger btn-sm ml-2">
                             <i class="ti-power-off"></i> Logout

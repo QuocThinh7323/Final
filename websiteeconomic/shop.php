@@ -21,10 +21,10 @@ if (isset($_SESSION['user_id'])) {
     $result = mysqli_query($conn, $sql_str);
     $role_row = mysqli_fetch_assoc($result);
 
-    // Kiểm tra và gán giá trị cho biến $user_role
+    
     $user_role = $role_row ? $role_row['role_name'] : null;
 } else {
-    // Người dùng chưa đăng nhập, gán giá trị null cho $user_role
+   
     $user_role = null;
 }
 
@@ -302,26 +302,26 @@ require_once('components/header.php');
                                             <ul class="product__item__pic__hover">
 
                                                 <!-- <li><a href="#"><i class="fa fa-retweet"></i></a></li> -->
-                                                 <?php
-                                                    // Kiểm tra vai trò người dùng và số lượng sản phẩm trong kho
+                                                 <!-- <?php
+                                                   
                                                     if ($user_role == 'User' && $row['stock'] > 0) {
                                                     ?>
-                                                    <!-- Hiển thị nút thêm vào giỏ hàng nếu sản phẩm còn hàng -->
+                                                    
                                                     <li><a href="#" class="add-to-cart" data-id="<?= $row['pid'] ?>" data-qty="1"><i class="fa fa-shopping-cart"></i></a></li>
                                                 <?php
                                                     } else if ($row['stock'] == 0) {
                                                 ?>
-                                                    <!-- Hiển thị thông báo hết hàng nếu không còn sản phẩm -->
+                                                  
                                                     <li><span style="color: red;">Currently out of stock</span></li>
                                                 <?php
                                                     }
-                                                ?>
+                                                ?> -->
                                             </ul>
                                         </div>
                                         <div class="product__discount__item__text">
                                             <span><?= $row['cname'] ?></span>
                                             <h5><a class="view-detail" href="product.php?id=<?= $row['pid'] ?>"><?= $row['pname'] ?></a></h5>
-                                            <!-- Display star rating -->
+                                          
                                             <div class="rating">
                                                 <?php for ($i = 1; $i <= 5; $i++) { ?>
                                                     <i class="fa fa-star<?= $i <= round($row['avg_rating']) ? '' : '-o' ?>" style="color: gold;"></i>
@@ -451,7 +451,7 @@ require_once('components/header.php');
                     qty: qty
                 },
                 success: function(response) {
-                    // Thông báo SweetAlert khi thêm sản phẩm thành công
+                   
                     Swal.fire({
                         title: 'Success!',
                         text: 'The product has been added to the cart!',
@@ -460,7 +460,7 @@ require_once('components/header.php');
                     });
                 },
                 error: function() {
-                    // Thông báo SweetAlert khi có lỗi
+                    
                     Swal.fire({
                         title: 'Error!',
                         text: 'An error has occurred. Please try again.',
@@ -471,9 +471,9 @@ require_once('components/header.php');
             });
         });
 
-        // Xử lý sự kiện click cho liên kết "view-detail" để ngăn chặn xung đột
+       
         $('.view-detail').click(function(e) {
-            // Ngừng tất cả các yêu cầu AJAX trước khi điều hướng
+          
             $.ajax({
                 type: 'GET',
                 success: function() {

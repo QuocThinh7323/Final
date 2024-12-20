@@ -4,7 +4,7 @@ $is_homepage = false;
 
 require_once('./db/conn.php');
 
-//toi uu code sau
+
 $idsp = $_GET['id'];
 $sql_str = "select * from news where id=$idsp";
 $result = mysqli_query($conn, $sql_str);

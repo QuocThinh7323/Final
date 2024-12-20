@@ -22,7 +22,7 @@ require('./db/conn.php');
 <body>
 
 	<?php
-	require('./db/conn.php'); // Bao gồm kết nối cơ sở dữ liệu
+	require('./db/conn.php');
 
 	function json_response($status, $message)
 	{
@@ -43,7 +43,7 @@ require('./db/conn.php');
 
 
 	if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-		// Đăng ký người dùng
+	
 		if (isset($_POST['signup'])) {
 			$username = $_POST['username'];
 			$fullname = $_POST['fullname'];
@@ -91,11 +91,11 @@ require('./db/conn.php');
 					});
 				</script>";
 				} else {
-					// Chuẩn bị câu truy vấn INSERT
+				
 					$stmt = $conn->prepare("INSERT INTO users (username, full_name, email, password, phone_number) VALUES (?, ?, ?, ?, ?)");
 					$stmt->bind_param("sssss", $username, $fullname, $email, $hashedPassword, $phone_number);
 
-					// Thực thi câu truy vấn
+				
 					if ($stmt->execute()) {
 						$newUserId = $stmt->insert_id;
 
@@ -129,18 +129,17 @@ require('./db/conn.php');
 						  </script>";
 					}
 
-					// Đóng câu lệnh
+		
 					$stmt->close();
 				}
 			}
 		}
 	}
-	// Xử lý đăng nhập người dùng
+
 	if (isset($_POST['signin'])) {
 		$username_email = $_POST['username_email'];
 		$password = $_POST['password'];
 
-		// Xử lý câu truy vấn để lấy thông tin người dùng và vai trò
 		$sql = "SELECT u.user_id, u.username, u.password, r.role_name 
                 FROM users u
                 LEFT JOIN user_roles ur ON u.user_id = ur.user_id
@@ -154,13 +153,13 @@ require('./db/conn.php');
 		if ($result->num_rows > 0) {
 			$user = $result->fetch_assoc();
 			if (password_verify($password, $user['password'])) {
-				// Lưu thông tin người dùng vào session
-				session_start(); // Đảm bảo session đã được khởi tạo
+			
+				session_start(); 
 				$_SESSION['user_id'] = $user['user_id'];
 				$_SESSION['username'] = $user['username'];
 				$_SESSION['role'] = $user['role_name'];
 
-				// Điều hướng người dùng dựa trên vai trò
+			
 				echo "<script>
                         Swal.fire({
                             title: 'Login Successful',
@@ -173,7 +172,7 @@ require('./db/conn.php');
                       </script>";
 				exit();
 			} else {
-				// Thông báo lỗi mật khẩu không đúng bằng SweetAlert
+				
 				echo "<script>
 						Swal.fire({
 							title: 'Invalid Password',
@@ -185,7 +184,7 @@ require('./db/conn.php');
 					</script>";
 			}
 		} else {
-			// Thông báo lỗi người dùng không tồn tại bằng SweetAlert
+			
 			echo "<script>
 					Swal.fire({
 						title: 'User not found',

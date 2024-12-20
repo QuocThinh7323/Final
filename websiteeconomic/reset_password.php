@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reset Password</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -52,81 +52,95 @@
         button:hover {
             background-color: #218838;
         }
-        p {
-            text-align: center;
-            color: #d9534f; /* Red color for error messages */
-        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Reset Password</h2>
-        <form action="reset_password.php" method="POST">
-            <?php if (isset($_GET['token'])): ?>
+    <?php if (isset($_GET['token']) && !empty($_GET['token'])): ?>
+        <div class="container">
+            <h2>Reset Password</h2>
+            <form action="reset_password.php" method="POST">
                 <input type="hidden" name="token" value="<?php echo htmlspecialchars($_GET['token']); ?>" required>
                 <input type="password" name="password" placeholder="Enter new password" required>
                 <button type="submit">Reset Password</button>
-            <?php else: ?>
-                <p>Invalid or missing token.</p>
-            <?php endif; ?>
-        </form>
+            </form>
+        </div>
+    <?php else: ?>
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Invalid or missing token.'
+            });
+        </script>
+    <?php endif; ?>
 
-        <?php
-        require_once('./db/conn.php');
+    <?php
+    require_once('./db/conn.php');
 
-        // Initialize message variable
-        $message = "";
+    // Initialize message variable
+    $message = "";
+    $success = false;
 
-        if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            if (!empty($_POST['token']) && !empty($_POST['password'])) {
-                $token = $_POST['token'];
-                $new_password = password_hash($_POST['password'], PASSWORD_BCRYPT);
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        if (!empty($_POST['token']) && !empty($_POST['password'])) {
+            $token = $_POST['token'];
+            $new_password = password_hash($_POST['password'], PASSWORD_BCRYPT);
 
-                // Verify token
-                $stmt = $conn->prepare("SELECT email FROM password_resets WHERE token = ?");
+            // Verify token
+            $stmt = $conn->prepare("SELECT email FROM password_resets WHERE token = ?");
+            $stmt->bind_param("s", $token);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if ($result->num_rows > 0) {
+                $row = $result->fetch_assoc();
+                $email = $row['email'];
+
+                // Update new password
+                $stmt = $conn->prepare("UPDATE users SET password = ? WHERE email = ?");
+                $stmt->bind_param("ss", $new_password, $email);
+                $stmt->execute();
+
+                // Delete used token
+                $stmt = $conn->prepare("DELETE FROM password_resets WHERE token = ?");
                 $stmt->bind_param("s", $token);
                 $stmt->execute();
-                $result = $stmt->get_result();
 
-                if ($result->num_rows > 0) {
-                    $row = $result->fetch_assoc();
-                    $email = $row['email'];
-
-                    // Update new password
-                    $stmt = $conn->prepare("UPDATE users SET password = ? WHERE email = ?");
-                    $stmt->bind_param("ss", $new_password, $email);
-                    $stmt->execute();
-
-                    // Delete used token
-                    $stmt = $conn->prepare("DELETE FROM password_resets WHERE token = ?");
-                    $stmt->bind_param("s", $token);
-                    $stmt->execute();
-
-                    // Set success message
-                    $message = "Password has been reset successfully.";
-                } else {
-                    // Set error message for invalid token
-                    $message = "Invalid token.";
-                }
+                // Set success message
+                $success = true;
+                $message = "Password has been reset successfully.";
             } else {
-                // Set error message for missing fields
-                $message = "Token and new password are required.";
+                // Set error message for invalid token
+                $message = "Invalid token.";
             }
+        } else {
+            // Set error message for missing fields
+            $message = "Token and new password are required.";
         }
+    }
 
-        // Display message if available
-        if ($message) {
-            echo "<p>$message</p>";
-            // Redirect after 3 seconds if the password was reset successfully
-            if ($message === "Password has been reset successfully.") {
-                echo "<script>
-                        setTimeout(function() {
-                            window.location.href = 'login.php';
-                        }, 3000); // Redirect after 3 seconds
-                      </script>";
-            }
+    // Display message using SweetAlert2
+    if ($message) {
+        echo "<script>";
+        if ($success) {
+            echo "Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: '$message',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = 'login.php';
+                });";
+        } else {
+            echo "Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: '$message',
+                });";
         }
-        ?>
-    </div>
+        echo "</script>";
+    }
+    ?>
 </body>
 </html>

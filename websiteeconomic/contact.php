@@ -9,6 +9,7 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
 }
+
 // Assuming the user's email is stored in the session when they log in
 $logged_in_user_email = isset($_SESSION['user_email']) ? $_SESSION['user_email'] : '';
 
@@ -17,28 +18,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
     $message = $_POST['message'];
 
-    // Check if all fields are filled and if the email matches the logged-in user's email
+    // Check if all fields are filled
     if (!empty($name) && !empty($email) && !empty($message)) {
-        if ($email === $logged_in_user_email) {
-            require_once('./db/conn.php');
+        require_once('./db/conn.php');
 
-            $sql = "INSERT INTO contact_message (name, user_email, message) VALUES (?, ?, ?)";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("sss", $name, $email, $message);
+        $sql = "INSERT INTO contact_message (name, user_email, message) VALUES (?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("sss", $name, $email, $message);
 
-            if ($stmt->execute()) {
-                // Store the success message in session
-                $_SESSION['success'] = "Your message has been sent successfully!";
-            } else {
-                // Store the error message in session
-                $_SESSION['error'] = "Something went wrong. Please try again.";
-            }
-
-            $stmt->close();
-            $conn->close();
+        if ($stmt->execute()) {
+            // Store the success message in session
+            $_SESSION['success'] = "Your message has been sent successfully!";
         } else {
-            $_SESSION['error'] = "The email does not match the logged-in user!";
+            // Store the error message in session
+            $_SESSION['error'] = "Something went wrong. Please try again.";
         }
+
+        $stmt->close();
+        $conn->close();
     } else {
         $_SESSION['error'] = "All fields are required!";
     }

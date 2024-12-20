@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Lấy thông tin số lượng tồn kho của sản phẩm từ cơ sở dữ liệu
+
     $stmt = $conn->prepare("SELECT p.stock FROM cart c JOIN products p ON c.product_id = p.id WHERE c.id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
@@ -23,13 +23,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Kiểm tra nếu số lượng muốn cập nhật lớn hơn số lượng trong kho
+  
     if ($qty > $product['stock']) {
         echo json_encode(['success' => false, 'message' => 'This product is currently out of stock.']);
         exit;
     }
 
-    // Cập nhật số lượng trong giỏ hàng
+    
     $stmt = $conn->prepare("UPDATE cart SET quantity = ? WHERE id = ?");
     $stmt->bind_param("ii", $qty, $id);
     $stmt->execute();

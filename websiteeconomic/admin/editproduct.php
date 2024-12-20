@@ -1,5 +1,5 @@
 <?php
-ob_start(); // Bắt đầu bộ đệm đầu ra
+ob_start(); 
 
 require('includes/header.php');
 
@@ -111,7 +111,7 @@ if (isset($_POST['btnUpdate'])) {
 
 // Your HTML and form code goes here
 
-ob_end_flush(); // Kết thúc bộ đệm đầu ra
+ob_end_flush(); 
 ?>
 
 

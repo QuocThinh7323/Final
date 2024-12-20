@@ -1,8 +1,8 @@
 <?php
-// Lấy ID của đơn hàng để chỉnh sửa
+
 $id = $_GET['id'];
 
-// Kết nối đến cơ sở dữ liệu
+
 require('../db/conn.php');
 
 function anhdaidien($arrstr, $height)
@@ -10,22 +10,22 @@ function anhdaidien($arrstr, $height)
     $arr = explode(';', $arrstr);
     return "<img src='{$arr[0]}' height='{$height}' />";
 }
-// Lấy thông tin chi tiết đơn hàng
+
 $sql_str = "SELECT * FROM orders WHERE id=$id";
 $res = mysqli_query($conn, $sql_str);
 $order = mysqli_fetch_assoc($res);
 
 if (isset($_POST['btnUpdate'])) {
-    // Lấy dữ liệu từ form
+   
     $status = $_POST['status'];
 
-    // Bắt đầu giao dịch để đảm bảo chỉ cập nhật kho khi thay đổi trạng thái thành công
+    
     mysqli_begin_transaction($conn);
 
     try {
-        // Nếu trạng thái mới là 'Delivered', trừ kho
+        
         if ($status === 'Delivered') {
-            // Lấy tất cả sản phẩm trong đơn hàng
+          
             $sql = "SELECT product_id, qty FROM order_details WHERE order_id = $id";
             $order_details_result = mysqli_query($conn, $sql);
 
@@ -33,35 +33,35 @@ if (isset($_POST['btnUpdate'])) {
                 throw new Exception("Lỗi khi lấy chi tiết đơn hàng: " . mysqli_error($conn));
             }
 
-            // Duyệt qua từng sản phẩm và trừ kho
+          
             while ($item = mysqli_fetch_assoc($order_details_result)) {
                 $product_id = $item['product_id'];
                 $qty = $item['qty'];
 
-                // Cập nhật kho sản phẩm, đảm bảo số lượng lớn hơn hoặc bằng số lượng mua
+              
                 $update_stock_query = "UPDATE products SET stock = stock - $qty WHERE id = $product_id AND stock >= $qty";
                 $update_result = mysqli_query($conn, $update_stock_query);
 
-                // Nếu kho không thể cập nhật (không đủ hàng hoặc lỗi truy vấn), rollback và báo lỗi
+             
                 if (!$update_result || mysqli_affected_rows($conn) == 0) {
                     throw new Exception("Không đủ kho cho sản phẩm ID: $product_id hoặc không thể cập nhật kho.");
                 }
             }
         }
 
-        // Cập nhật trạng thái đơn hàng
+        
         $sql_str = "UPDATE orders SET status = '$status' WHERE id = $id";
         if (!mysqli_query($conn, $sql_str)) {
             throw new Exception("Lỗi khi cập nhật trạng thái đơn hàng: " . mysqli_error($conn));
         }
 
-        // Commit giao dịch nếu mọi thứ thành công
+      
         mysqli_commit($conn);
 
-        // Chuyển hướng đến trang danh sách đơn hàng
+       
         header("location: ./listorders.php");
     } catch (Exception $e) {
-        // Rollback giao dịch nếu có lỗi
+      
         mysqli_rollback($conn);
         echo "<div class='alert alert-danger'>Không thể cập nhật đơn hàng: " . $e->getMessage() . "</div>";
     }

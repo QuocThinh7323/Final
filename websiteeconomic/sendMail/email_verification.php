@@ -2,7 +2,7 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-require 'vendor/autoload.php'; // PHPMailer autoload
+require 'vendor/autoload.php'; 
 
 function sendVerificationEmail($adminEmail, $newUserId) {
     $mail = new PHPMailer(true);
@@ -10,16 +10,16 @@ function sendVerificationEmail($adminEmail, $newUserId) {
     try {
         //Server settings
         $mail->isSMTP();
-        $mail->Host       = 'smtp.gmail.com'; // SMTP server của bạn
+        $mail->Host       = 'smtp.gmail.com'; 
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'phanquocthinh004@gmail.com'; // Email admin của bạn
-        $mail->Password   = 'rvkv tbip rcjb ztpb'; // Mật khẩu email admin
+        $mail->Username   = 'phanquocthinh004@gmail.com'; 
+        $mail->Password   = 'rvkv tbip rcjb ztpb'; 
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = 587;
 
         //Recipients
         $mail->setFrom('phanquocthinh004@gmail.com', 'QT Store');
-        $mail->addAddress($adminEmail); // Admin nhận email xác nhận
+        $mail->addAddress($adminEmail); 
 
         // Content
         $mail->isHTML(true);

@@ -23,23 +23,23 @@
         $result = $stmt->get_result();
         $item = $result->fetch_assoc();
 
-        return $item['price'] ?? 0; // Return price or 0 if not found
+        return $item['price'] ?? 0; 
     }
 
     // Get cart items from database
     function get_cart($user_id)
-    {
-        global $conn; // Declare $conn as global
-        $query = "SELECT c.id, c.quantity, c.price, c.total, p.name, p.images , p.stock 
-                FROM cart c 
-                JOIN products p ON c.product_id = p.id 
-                WHERE c.user_id = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        return $result->fetch_all(MYSQLI_ASSOC);
-    }
+{
+    global $conn; 
+    $query = "SELECT c.id, c.quantity, c.price, c.total, p.name, p.images, p.stock, p.disscounted_price 
+              FROM cart c 
+              JOIN products p ON c.product_id = p.id 
+              WHERE c.user_id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_all(MYSQLI_ASSOC);
+}
     // Update cart item quantity
     function update_cart($cart_id, $quantity)
     {
@@ -49,7 +49,7 @@
         $total = $quantity * $price; // Calculate total based on quantity and price
         $query = "UPDATE cart SET quantity = ?, total = ? WHERE id = ?";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param("idi", $quantity, $total, $cart_id); // Change to "idi" for correct types
+        $stmt->bind_param("idi", $quantity, $total, $cart_id); 
         $stmt->execute();
     }
 
@@ -64,14 +64,15 @@
     }
 
     // Get total amount of cart
-    function get_total_amount($cart)
-    {
+    function get_total_amount($cart) {
         $total = 0;
         foreach ($cart as $item) {
-            $total += $item['total'];
+            $price = !empty($item['disscounted_price']) && $item['disscounted_price'] > 0 ? $item['disscounted_price'] : $item['price'];
+            $total += $price * $item['quantity'];
         }
         return $total;
     }
+    
 
     // Validate checkout
     function validate_checkout($cart)
@@ -82,6 +83,14 @@
         }
         return true;
     }
+    function display_price($price, $discounted_price) {
+        if (isset($discounted_price) && $discounted_price > 0) {
+            return '$' . number_format($discounted_price, 0, '', '.');
+        }
+        return '$' . number_format($price, 0, '', '.');
+    }
+    
+    
 
     // Get user ID from session
     $user_id = $_SESSION['user_id']; // Ensure user is logged in
@@ -176,60 +185,57 @@
                     updateTotalAmount();
                 };
 
-                // Sự kiện cho nút "Select All"
+             
                 document.getElementById('selectAll').addEventListener('change', (e) => {
                     toggleSelectAll(e.target);
                     updateTotalAmount();
                 });
 
-                // Sự kiện cho các checkbox sản phẩm
+          
                 document.querySelectorAll('.product-checkbox').forEach(checkbox => {
                     checkbox.addEventListener('change', updateTotalAmount);
                 });
 
                 const validateCheckout = () => {
-                    const selectedItems = document.querySelectorAll('.product-checkbox:checked');
-                    const outOfStockItems = [];
+    const selectedItems = document.querySelectorAll('.product-checkbox:checked');
+    const outOfStockItems = [];
 
-                    // Kiểm tra tất cả các sản phẩm được chọn
-                    selectedItems.forEach(checkbox => {
-                        const productRow = checkbox.closest('tr');
-                        const stockStatus = productRow.querySelector('.stock-status').innerText.trim(); // Lấy trạng thái hàng tồn kho
+    selectedItems.forEach(checkbox => {
+        const stockStatus = checkbox.getAttribute('data-stock');
 
-                        if (stockStatus.includes('Currently out of stock')) {
-                            outOfStockItems.push(checkbox.value);
-                        }
-                    });
+        if (stockStatus === "0") {
+            outOfStockItems.push(checkbox.value);
+        }
+    });
 
-                    // Nếu có sản phẩm hết hàng, hiển thị thông báo lỗi
-                    if (outOfStockItems.length > 0) {
-                        Swal.fire({
-                            title: 'Out of Stock',
-                            text: `The following selected items are out of stock: ${outOfStockItems.join(', ')}. Please remove them from your cart to proceed.`,
-                            icon: 'error',
-                            confirmButtonText: 'OK'
-                        });
-                        return false; // Không cho phép tiếp tục
-                    }
+    if (outOfStockItems.length > 0) {
+        Swal.fire({
+            title: 'Out of Stock',
+            text: `The following selected items are out of stock: ${outOfStockItems.join(', ')}. Please remove them from your cart to proceed.`,
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+        return false;
+    }
 
-                    // Kiểm tra xem có sản phẩm nào được chọn không
-                    if (selectedItems.length === 0) {
-                        Swal.fire({
-                            title: 'No Product Selected',
-                            text: "You need to choose a product to checkout.",
-                            icon: 'warning',
-                            confirmButtonText: 'OK'
-                        });
-                        return false; // Không cho phép tiếp tục
-                    }
+    if (selectedItems.length === 0) {
+        Swal.fire({
+            title: 'No Product Selected',
+            text: "You need to choose a product to checkout.",
+            icon: 'warning',
+            confirmButtonText: 'OK'
+        });
+        return false;
+    }
 
-                    return true; // Cho phép tiếp tục
-                };
+    return true;
+};
 
-                // Sự kiện khi nhấn nút "Checkout Selected"
+
+               
                 document.querySelector('form.checkout-form').addEventListener('submit', (e) => {
                     if (!validateCheckout()) {
-                        e.preventDefault(); // Ngăn không cho gửi biểu mẫu nếu có lỗi
+                        e.preventDefault(); 
                     }
                 });
             });
@@ -239,18 +245,18 @@
             // JavaScript function to handle the update button
             function updateItem(cart_id) {
                 const qtyInput = document.querySelector(`input[name="qty[${cart_id}]"]`);
-                const quantity = qtyInput.value; // Lấy giá trị số lượng từ input
+                const quantity = qtyInput.value; 
 
                 if (quantity < 1) {
                     alert('Quantity must be at least 1');
-                    return; // Ngừng nếu số lượng không hợp lệ
+                    return; 
                 }
 
                 const formData = new FormData();
                 formData.append('id', cart_id);
-                formData.append('qty', quantity); // Thêm số lượng vào dữ liệu gửi đi
+                formData.append('qty', quantity); 
 
-                fetch('updatecart.php', { // Đảm bảo đường dẫn đến file updatecart.php là chính xác
+                fetch('updatecart.php', { 
                         method: 'POST',
                         body: formData
                     })
@@ -258,7 +264,7 @@
                     .then(data => {
                         if (data.success) {
                             Swal.fire('Success', data.message, 'success').then(() => {
-                                location.reload(); // Reload trang để cập nhật dữ liệu
+                                location.reload(); 
                             });
                         } else {
                             Swal.fire('Error', data.message, 'error').then(() => {
@@ -278,7 +284,7 @@
                     const formData = new FormData();
                     formData.append('id', cart_id);
 
-                    console.log('Deleting cart item with ID:', cart_id); // Ghi log ID của sản phẩm
+                    console.log('Deleting cart item with ID:', cart_id); 
 
                     fetch('deletecart.php', {
                             method: 'POST',
@@ -286,7 +292,7 @@
                         })
                         .then(response => response.json())
                         .then(data => {
-                            console.log('Response from deletecart.php:', data); // Ghi log phản hồi từ PHP
+                            console.log('Response from deletecart.php:', data); 
                             if (data.success) {
                                 Swal.fire('Success', data.message, 'success').then(() => {
                                     location.reload(); // Reload the page to reflect changes
@@ -350,19 +356,21 @@
                                         <?php
                                         $count = 0; // Number
                                         foreach ($cart as $item) {
-                                            $subtotal = $item['quantity'] * $item['price'];
+                                            $subtotal = $item['quantity'] * (isset($item['discounted_price']) && $item['discounted_price'] > 0 ? $item['discounted_price'] : $item['price']);
+
                                         ?>
                                             <tr>
                                                 <td>
-                                                    <input type="checkbox" class="product-checkbox" name="selected_items[]" value="<?= $item['id'] ?>" data-price="<?= $subtotal ?>">
+                                                <input type="checkbox" class="product-checkbox stock-status" name="selected_items[]" value="<?= $item['id'] ?>" data-price="<?= $subtotal ?>" data-stock="<?= $item['stock'] ?>">
+
                                                 </td>
-                                                <td class="stock-status">Currently out of stock</td>
                                                 <td><?= ++$count ?></td>
                                                 <td><?= htmlspecialchars($item['name']) ?></td>
                                                 <td><?= anhdaidien($item['images'], "100px") ?></td>
-                                                <td>$<?= number_format($item['price'], 0, '', '.') ?></td>
+                                                <td><?= display_price($item['price'], $item['disscounted_price']) ?></td>
                                                 <td><input type="number" name="qty[<?= $item['id'] ?>]" value="<?= $item['quantity'] ?>" min="1" /></td>
-                                                <td>$<?= number_format($subtotal, 0, '', '.') ?></td>
+                                                <td><?= display_price($item['price'], $item['disscounted_price']) ?></td>
+
                                                 <td>
                                                     <div class="btn-group btn-group-custom" style="display: flex; align-items: center;">
                                                         <?php if ($item['stock'] > 0): ?>

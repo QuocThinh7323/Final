@@ -72,10 +72,10 @@ if (isset($_POST['btnUpdate'])) {
             text-align: center; /* Center align text */
         }
         .form-group label {
-            font-weight: bold; /* Make label text bold */
-            text-align: center; /* Center align label */
-            display: block; /* Ensure the label takes the full width */
-            margin-bottom: 10px; /* Add some space below the label */
+            font-weight: bold;
+            text-align: center; 
+            display: block; 
+            margin-bottom: 10px; 
         }
     </style>
 </head>
@@ -94,7 +94,7 @@ if (isset($_POST['btnUpdate'])) {
                            id="name" name="name" placeholder="Category Name"
                            value="<?= htmlspecialchars($cat['name'], ENT_QUOTES) ?>">
                 </div>
-                <div class="text-center-custom"> <!-- Center the button -->
+                <div class="text-center-custom"> 
                     <button type="submit" class="btn btn-primary btn-update" name="btnUpdate">
                         <i class="fas fa-save"></i> Update
                     </button>
@@ -105,13 +105,13 @@ if (isset($_POST['btnUpdate'])) {
     </div>
 </div>
 
-<!-- Include jQuery, Bootstrap JS -->
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
     $(document).ready(function () {
         $('#updateForm').on('submit', function (e) {
-            e.preventDefault(); // Prevent the default form submission
+            e.preventDefault(); 
 
             $.ajax({
                 url: '',
@@ -120,7 +120,7 @@ if (isset($_POST['btnUpdate'])) {
                 success: function (response) {
                     $('#statusMessage').removeClass('error').addClass('success').text('Category updated successfully!').fadeIn();
                     setTimeout(function () {
-                        window.location.href = 'listcats.php'; // Redirect after success
+                        window.location.href = 'listcats.php'; 
                     }, 2000);
                 },
                 error: function (xhr, status, error) {

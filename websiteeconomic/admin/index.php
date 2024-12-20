@@ -2,55 +2,64 @@
 require('includes/header.php');
 require_once('../db/conn.php');
 
-// Query sales statistics by month
-$sql_month = "SELECT 
-                DATE_FORMAT(o.created_at, '%Y-%m') AS month, 
-                SUM(od.qty) AS total_quantity 
-              FROM orders o
-              JOIN order_details od ON o.id = od.order_id
-              GROUP BY month
-              ORDER BY month DESC";
-$result_month = $conn->query($sql_month);
+// Query for monthly sales
+$monthlyQuery = "
+    SELECT 
+        YEAR(orders.created_at) AS sale_year,
+        MONTH(orders.created_at) AS sale_month,
+        SUM(order_details.qty) AS total_quantity_sold
+    FROM orders
+    JOIN order_details ON orders.id = order_details.order_id
+    WHERE orders.status = 'Delivered'
+    GROUP BY YEAR(orders.created_at), MONTH(orders.created_at)
+    ORDER BY sale_year, sale_month";
+$monthlyData = $pdo->query($monthlyQuery)->fetchAll(PDO::FETCH_ASSOC);
 
+// Query for quarterly sales
+$quarterlyQuery = "
+    SELECT 
+        YEAR(orders.created_at) AS sale_year,
+        QUARTER(orders.created_at) AS sale_quarter,
+        SUM(order_details.qty) AS total_quantity_sold
+    FROM orders
+    JOIN order_details ON orders.id = order_details.order_id
+    WHERE orders.status = 'Delivered'
+    GROUP BY YEAR(orders.created_at), QUARTER(orders.created_at)
+    ORDER BY sale_year, sale_quarter";
+$quarterlyData = $pdo->query($quarterlyQuery)->fetchAll(PDO::FETCH_ASSOC);
+
+// Query for yearly sales
+$yearlyQuery = "
+    SELECT 
+        YEAR(orders.created_at) AS sale_year,
+        SUM(order_details.qty) AS total_quantity_sold
+    FROM orders
+    JOIN order_details ON orders.id = order_details.order_id
+    WHERE orders.status = 'Delivered'
+    GROUP BY YEAR(orders.created_at)
+    ORDER BY sale_year";
+$yearlyData = $pdo->query($yearlyQuery)->fetchAll(PDO::FETCH_ASSOC);
+
+// Prepare data arrays for Chart.js
 $months = [];
-$month_quantities = [];
-while ($row = $result_month->fetch_assoc()) {
-    $months[] = $row['month'];
-    $month_quantities[] = $row['total_quantity'];
+$monthlySales = [];
+foreach ($monthlyData as $row) {
+    $months[] = $row['sale_year'] . '-' . str_pad($row['sale_month'], 2, '0', STR_PAD_LEFT);
+    $monthlySales[] = $row['total_quantity_sold'];
 }
-
-// Query sales statistics by quarter
-$sql_quarter = "SELECT 
-                CONCAT(YEAR(o.created_at), ' Q', QUARTER(o.created_at)) AS quarter, 
-                SUM(od.qty) AS total_quantity 
-              FROM orders o
-              JOIN order_details od ON o.id = od.order_id
-              GROUP BY quarter
-              ORDER BY quarter DESC";
-$result_quarter = $conn->query($sql_quarter);
 
 $quarters = [];
-$quarter_quantities = [];
-while ($row = $result_quarter->fetch_assoc()) {
-    $quarters[] = $row['quarter'];
-    $quarter_quantities[] = $row['total_quantity'];
+$quarterlySales = [];
+foreach ($quarterlyData as $row) {
+    $quarters[] = $row['sale_year'] . '-Q' . $row['sale_quarter'];
+    $quarterlySales[] = $row['total_quantity_sold'];
 }
 
-// Query sales statistics by year
-$sql_year = "SELECT 
-                YEAR(o.created_at) AS year, 
-                SUM(od.qty) AS total_quantity 
-              FROM orders o
-              JOIN order_details od ON o.id = od.order_id
-              GROUP BY year
-              ORDER BY year DESC";
-$result_year = $conn->query($sql_year);
-
 $years = [];
-$year_quantities = [];
-while ($row = $result_year->fetch_assoc()) {
-    $years[] = $row['year'];
-    $year_quantities[] = $row['total_quantity'];
+$yearlySales = [];
+foreach ($yearlyData as $row) {
+    $years[] = $row['sale_year'];
+    $yearlySales[] = $row['total_quantity_sold'];
 }
 
 $sql = "SELECT COUNT(*) as total_contacts FROM contact_message"; // Adjust table name if needed
@@ -65,7 +74,8 @@ if ($result->num_rows > 0) {
 $sql = "SELECT SUM(od.qty * od.price) AS monthly_earnings, MONTH(o.created_at) AS month 
         FROM order_details od 
         JOIN orders o ON od.order_id = o.id
-        WHERE YEAR(o.created_at) = YEAR(CURDATE())
+        WHERE YEAR(o.created_at) = YEAR(CURDATE()) 
+        AND o.status = 'Delivered'
         GROUP BY MONTH(o.created_at)";
 
 $result = $conn->query($sql);
@@ -81,6 +91,7 @@ $sql = "SELECT SUM(od.qty * od.price) AS year_earnings, YEAR(o.created_at) AS mo
         FROM order_details od 
         JOIN orders o ON od.order_id = o.id
         WHERE YEAR(o.created_at) = YEAR(CURDATE())
+        AND o.status = 'Delivered'
         GROUP BY YEAR(o.created_at)";
 
 $result = $conn->query($sql);
@@ -91,11 +102,12 @@ if ($result->num_rows > 0) {
         $year_earnings = $row['year_earnings']; // You can modify to handle multiple months if needed
     }
 }
-// Truy vấn SQL để lấy tổng doanh thu theo tháng
+
 $sql = "SELECT SUM(od.qty * od.price) AS monthly_revenue, MONTH(o.created_at) AS month 
         FROM order_details od 
         JOIN orders o ON od.order_id = o.id
         WHERE YEAR(o.created_at) = YEAR(CURDATE())
+        AND o.status = 'Delivered'
         GROUP BY MONTH(o.created_at)";
 
 $result = mysqli_query($conn, $sql);
@@ -104,8 +116,8 @@ $months = [];
 $monthly_revenues = [];
 
 while ($row = mysqli_fetch_assoc($result)) {
-    $months[] = $row['month']; // Lưu tên tháng
-    $monthly_revenues[] = $row['monthly_revenue']; // Lưu tổng doanh thu
+    $months[] = $row['month']; 
+    $monthly_revenues[] = $row['monthly_revenue']; 
 }
 
 ?>
@@ -116,20 +128,23 @@ $sql = "SELECT p.id, p.name, p.images, p.price,
                SUM(od.qty * p.price) AS total_revenue
         FROM order_details od
         JOIN products p ON od.product_id = p.id
+        JOIN orders o ON od.order_id = o.id
+        WHERE o.status = 'Delivered'
         GROUP BY p.id, p.name, p.images, p.price
         ORDER BY total_quantity DESC
         LIMIT 5";
+
 
 $result = $conn->query($sql);
 
 $top_selling_products = [];
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
-        // Tạo mảng hình ảnh từ chuỗi 'images'
-        $anh_arr = explode(';', $row['images']); // Tách chuỗi images thành mảng
-        $row['images_arr'] = $anh_arr; // Thêm mảng hình ảnh vào row để sử dụng sau
+       
+        $anh_arr = explode(';', $row['images']); 
+        $row['images_arr'] = $anh_arr; 
 
-        $top_selling_products[] = $row; // Lưu trữ thông tin sản phẩm
+        $top_selling_products[] = $row; 
     }
 }
 
@@ -168,6 +183,16 @@ if ($result_reviews->num_rows > 0) {
         $reviews[] = $row;
     }
 }
+//total all accounts
+$sql_account = "SELECT COUNT(*) AS total_accounts FROM users";  // Replace 'users' with the actual table name
+
+$result = $conn->query($sql_account);
+
+$total_accounts = 0;
+if ($result->num_rows > 0) {
+    $row = $result->fetch_assoc();
+    $total_accounts = $row['total_accounts'];
+}
 $conn->close();
 ?>
 
@@ -190,76 +215,115 @@ $conn->close();
             margin: 0 auto;
             /* Center the chart */
         }
+        /* Flex container to display charts in a row */
+        .chart-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px; /* Space between charts */
+            margin: 20px;
+        }
+
+        /* Styling each chart to fit better */
+        .chart-box {
+            flex: 1;
+            max-width: 32%; /* Each chart takes up around a third of the row */
+        }
+
+        canvas {
+            width: 100%; /* Ensures each canvas fills its container */
+            height: 300px; /* Fixed height for consistency */
+        }
     </style>
 </head>
 
 <body>
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-
-    </div>
-    <div class="row">
-        <!-- Earnings (Year) Card Example -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Earnings (Year)</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?php echo "$" . number_format($year_earnings, 2); ?>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+    <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+</div>
+<div class="row">
+    <!-- Earnings (Year) Card Example -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Earnings (Year)</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <?php echo "$" . number_format($year_earnings, 2); ?>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Earnings (Monthly) Card Example -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Earnings (Monthly)</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?php echo "$" . number_format($monthly_earnings, 2); ?>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Earnings (Contacts) Card Example -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Total Contacts</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                <?php echo $total_contacts; ?>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-address-book fa-2x text-gray-300"></i>
-                        </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Earnings (Monthly) Card Example -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Earnings (Monthly)</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <?php echo "$" . number_format($monthly_earnings, 2); ?>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Contacts Card Example -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Total Contacts</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <?php echo $total_contacts; ?>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-address-book fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Accounts Card Example -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                            Total Accounts</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <?php echo $total_accounts; ?>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-address-book fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
     <!-- Earnings Overview Chart -->
 
     <div class="col-lg-12 mb-4">
@@ -273,45 +337,23 @@ $conn->close();
         </div>
     </div>
 
-    <div class="container my-5">
-        <h1 class="mb-4">Sales Statistics</h1>
+  
 
-        <div class="row">
-            <!-- Chart by month -->
-            <div class="col-lg-4 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">By Month</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="monthChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Chart by quarter -->
-            <div class="col-lg-4 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">By Quarter</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="quarterChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Chart by year -->
-            <div class="col-lg-4 mb-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">By Year</h5>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="yearChart"></canvas>
-                    </div>
-                </div>
-            </div>
+        <h2>Sales Statistics</h2>
+    <div class="chart-container">
+        <div class="chart-box">
+            <h3>Monthly Sales</h3>
+            <canvas id="monthlyChart"></canvas>
+        </div>
+        <div class="chart-box">
+            <h3>Quarterly Sales</h3>
+            <canvas id="quarterlyChart"></canvas>
+        </div>
+        <div class="chart-box">
+            <h3>Yearly Sales</h3>
+            <canvas id="yearlyChart"></canvas>
+        </div>
+    </div>
             <!-- Form to Display Top Selling Product -->
             <div class="container">
                 <h1 class="mb-4">Top Selling Product</h1>
@@ -330,7 +372,7 @@ $conn->close();
                             <tr>
                                 <td>
                                     <?php if (!empty($product['images_arr'])): ?>
-                                        <!-- Hiển thị ảnh đầu tiên trong mảng -->
+                                        
                                         <img src="<?php echo $product['images_arr'][0]; ?>" style="width: 100px; height: auto;" alt="<?php echo $product['name']; ?>">
                                     <?php endif; ?>
                                 </td>
@@ -383,9 +425,9 @@ $conn->close();
                                                 // Hiển thị sao theo đánh giá
                                                 for ($i = 1; $i <= 5; $i++) {
                                                     if ($i <= $review['rating']) {
-                                                        echo '<i class="fas fa-star" style="color: gold;"></i>'; // Sao đầy
+                                                        echo '<i class="fas fa-star" style="color: gold;"></i>'; 
                                                     } else {
-                                                        echo '<i class="far fa-star" style="color: gold;"></i>'; // Sao rỗng
+                                                        echo '<i class="far fa-star" style="color: gold;"></i>'; 
                                                     }
                                                 }
                                                 ?>
@@ -401,110 +443,51 @@ $conn->close();
                 </div>
             </div>
             <script>
-                // Chart by month
-                const monthCtx = document.getElementById('monthChart').getContext('2d');
-                new Chart(monthCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: <?php echo json_encode($months); ?>,
-                        datasets: [{
-                            label: 'Quantity Sold',
-                            data: <?php echo json_encode($month_quantities); ?>,
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Quantity'
-                                }
-                            },
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Month'
-                                }
-                            }
-                        }
-                    }
-                });
+                // Monthly Sales Chart
+        const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+        new Chart(monthlyCtx, {
+            type: 'bar',
+            data: {
+                labels: <?php echo json_encode($months); ?>,
+                datasets: [{
+                    label: 'Total Quantity Sold',
+                    data: <?php echo json_encode($monthlySales); ?>,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                }]
+            },
+            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        });
 
-                // Chart by quarter
-                const quarterCtx = document.getElementById('quarterChart').getContext('2d');
-                new Chart(quarterCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: <?php echo json_encode($quarters); ?>,
-                        datasets: [{
-                            label: 'Quantity Sold',
-                            data: <?php echo json_encode($quarter_quantities); ?>,
-                            backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                            borderColor: 'rgba(153, 102, 255, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Quantity'
-                                }
-                            },
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Quarter'
-                                }
-                            }
-                        }
-                    }
-                });
+        // Quarterly Sales Chart
+        const quarterlyCtx = document.getElementById('quarterlyChart').getContext('2d');
+        new Chart(quarterlyCtx, {
+            type: 'bar',
+            data: {
+                labels: <?php echo json_encode($quarters); ?>,
+                datasets: [{
+                    label: 'Total Quantity Sold',
+                    data: <?php echo json_encode($quarterlySales); ?>,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)'
+                }]
+            },
+            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        });
 
-                // Chart by year
-                const yearCtx = document.getElementById('yearChart').getContext('2d');
-                new Chart(yearCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: <?php echo json_encode($years); ?>,
-                        datasets: [{
-                            label: 'Quantity Sold',
-                            data: <?php echo json_encode($year_quantities); ?>,
-                            backgroundColor: 'rgba(255, 159, 64, 0.2)',
-                            borderColor: 'rgba(255, 159, 64, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Quantity'
-                                }
-                            },
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Year'
-                                }
-                            }
-                        }
-                    }
-                });
+        // Yearly Sales Chart
+        const yearlyCtx = document.getElementById('yearlyChart').getContext('2d');
+        new Chart(yearlyCtx, {
+            type: 'bar',
+            data: {
+                labels: <?php echo json_encode($years); ?>,
+                datasets: [{
+                    label: 'Total Quantity Sold',
+                    data: <?php echo json_encode($yearlySales); ?>,
+                    backgroundColor: 'rgba(255, 159, 64, 0.6)'
+                }]
+            },
+            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        });
+    
 
                 // Pie Chart by Category
                 const categoryCtx = document.getElementById('categoryPieChart').getContext('2d');

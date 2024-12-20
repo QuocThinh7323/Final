@@ -1,22 +1,22 @@
 <?php 
 
 
-//lay id goi edit
+
 $id = $_GET['id'];
 
-//ket noi csdl
+
 require('../db/conn.php');
 
 $sql_str = "select 
 * from news where id=$id";
-// echo $sql_str; exit;   //debug cau lenh
+
 
 $res = mysqli_query($conn, $sql_str);
 
 $news = mysqli_fetch_assoc($res);
 
 if (isset($_POST['btnUpdate'])){
-   //lay du lieu tu form
+   
    $name = $_POST['title'];
    $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name)));
    $summary = $_POST['summary'];
@@ -24,16 +24,16 @@ if (isset($_POST['btnUpdate'])){
   
    $category = $_POST['category'];
   
-   //xu ly hinh anh
+  
  
 
-   if (!empty($_FILES['anh']['name'])){//có chọn hình ảnh mới - xóa các ảnh cũ
-    //xoa anh cu
+   if (!empty($_FILES['anh']['name'])){
+    
    
     unlink($news['avatar']);
     
     
-    //them anh moi 
+    
     // $imgs = '';
     // for($i=0;$i<$countfiles;$i++){
         $filename = $_FILES['anh']['name'];
@@ -51,7 +51,7 @@ if (isset($_POST['btnUpdate'])){
         ## Check file extension
         if(in_array(strtolower($extension), $valid_extensions)) {
 
-            // them vao CSDL - them thah cong moi upload anh len
+       
             ## Upload file
                                 //$_FILES['file']['tmp_name']: $_FILES['file']['tmp_name'] - The temporary filename of the file in which the uploaded file was stored on the server.
             if(move_uploaded_file($_FILES['anh']['tmp_name'],$location)){
@@ -64,7 +64,7 @@ if (isset($_POST['btnUpdate'])){
 
     // echo substr($imgs, 0, -1); exit;
     
-    // cau lenh them vao bang
+  
     $sql_str = "UPDATE `news` 
         SET `title`='$name', 
         `slug`='$slug', 
@@ -90,10 +90,9 @@ if (isset($_POST['btnUpdate'])){
 
 //    echo $sql_str; exit;
 
-   //thuc thi cau lenh
    mysqli_query($conn, $sql_str);
 
-   //tro ve trang 
+   
    header("location: ./listnews.php");
 } else {
     require('includes/header.php');
@@ -103,7 +102,7 @@ if (isset($_POST['btnUpdate'])){
 
 <div class="card o-hidden border-0 shadow-lg my-5">
     <div class="card-body p-0">
-        <!-- Nested Row within Card Body -->
+      
         <div class="row">
             <div class="col-lg-12">
                 <div class="p-5">

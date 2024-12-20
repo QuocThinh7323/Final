@@ -1,10 +1,10 @@
 <?php
 
 
-//lay id goi edit
+
 $id = $_GET['id'];
 
-//ket noi csdl
+
 require('../db/conn.php');
 
 $sql_str = "select * from newscategories where id=$id";
@@ -13,16 +13,16 @@ $res = mysqli_query($conn, $sql_str);
 $cat = mysqli_fetch_assoc($res);
 
 if (isset($_POST['btnUpdate'])) {
-    //neu nut Cap nhat duoc nhan
-    //lay name
+  
+ 
     $name = $_POST['name'];
     $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name)));
-    //thuc hien viec cap nhat
+   
     $sql_str2 = "update newscategories set name='$name', slug='$slug' where id=$id";
 
     mysqli_query($conn, $sql_str2);
 
-    //chuyen qua trang listcats
+    
     header("location: listnewscats.php");
 } else {
     require('includes/header.php');

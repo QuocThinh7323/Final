@@ -6,7 +6,7 @@
     // Function to get cart items from database
     function get_cart($user_id)
     {
-        global $conn; // Declare $conn as global
+        global $conn; 
         $query = "SELECT c.id, c.product_id, c.quantity AS qty, c.price, c.total, p.name, p.images 
                 FROM cart c 
                 JOIN products p ON c.product_id = p.id 
@@ -28,7 +28,7 @@
     $selected_items = isset($_POST['selected_items']) ? $_POST['selected_items'] : [];
 
     // Initialize total
-    $total = 0;
+    $totalcheckout = 0;
     $selected_cart_items = [];
 
     // Filter the cart to include only selected items
@@ -40,7 +40,7 @@
                     ? $item['disscounted_price']
                     : $item['price'];
                 $item_qty = isset($item['qty']) ? $item['qty'] : 0; // Fallback if qty is not found
-                $total += $item_qty * $item_price;
+                $totalcheckout += $item_qty * $item_price;
             }
         }
     }
@@ -136,10 +136,10 @@
                     // Xóa sản phẩm đã chọn trong giỏ hàng
                     $delete_sql = "DELETE FROM cart WHERE user_id = ? AND product_id = ? AND id = ?";
                     $delete_stmt = $conn->prepare($delete_sql);
-                    $delete_stmt->bind_param("iii", $user_id, $pid, $item['id']); // Xóa dựa trên user_id, product_id và id của item
+                    $delete_stmt->bind_param("iii", $user_id, $pid, $item['id']); 
                     $delete_stmt->execute();
 
-                    // // Kiểm tra xem xóa có thành công không
+                  
                     // if ($delete_stmt->affected_rows == 0) {
                     //     echo "No rows deleted for product ID $pid. Check if it exists in the cart.";
                     // }
@@ -153,7 +153,7 @@
                 // Redirect based on payment method
                 if ($payment_method === 'bank_transfer') {
                     // Pass the total amount and other details via URL parameters (or use POST)
-                    header("Location: bank_transfer_info.php?total=" . urlencode($total) . "&order_id=" . urlencode($last_order_id));
+                    header("Location: bank_transfer_info.php?total=" . urlencode($totalcheckout) . "&order_id=" . urlencode($last_order_id));
                 } else {
                     header("Location: thankyou.php?order_id=" . urlencode($last_order_id));
                 }
@@ -195,7 +195,7 @@
     <body>
 
         <!-- Breadcrumb Section Begin -->
-        <section class="breadcrumb-section set-bg" data-setbg="img/banner/bannersale1.jpg">
+        <section class="breadcrumb-section set-bg" data-setbg="img/banner/bannerbackround.jpeg">
             <div class="container">
                 <div class="row">
                     <div class="col-lg-12">
@@ -276,7 +276,7 @@
                                             </li>
                                         <?php endforeach; ?>
                                     </ul>
-                                    <div class="checkout__order__total">Total <span>$<?php echo number_format($total, 2); ?></span></div>
+                                    <div class="checkout__order__total">Total <span>$<?php echo number_format($totalcheckout, 2); ?></span></div>
                                     <label for="payment_method">Payment Method</label>
                                     <div class="checkout__input__select">
                                         <label>

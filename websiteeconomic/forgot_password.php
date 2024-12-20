@@ -5,52 +5,57 @@ use PHPMailer\PHPMailer\Exception;
 
 require 'vendor/autoload.php';
 
-$showAlert = false; // Biến hiển thị SweetAlert
-$alertMessage = ""; // Nội dung thông báo
-$alertType = ""; // Loại thông báo (success hoặc error)
+$showAlert = false; 
+$alertMessage = ""; 
+$alertType = ""; 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $email = $_POST['email'];
 
-  // Kết nối database
+  
   require_once('./db/conn.php');
 
-  // Kiểm tra email có tồn tại không
+ 
   $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
   $stmt->bind_param("s", $email);
   $stmt->execute();
   $result = $stmt->get_result();
 
   if ($result->num_rows > 0) {
-    // Tạo token ngẫu nhiên
+   
     $token = bin2hex(random_bytes(50));
 
-    // Lưu token vào bảng password_resets
+  
+    $stmt = $conn->prepare("DELETE FROM password_resets WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    
     $stmt = $conn->prepare("INSERT INTO password_resets (email, token) VALUES (?, ?)");
     $stmt->bind_param("ss", $email, $token);
     $stmt->execute();
+    
 
-    // Tạo link reset mật khẩu
+   
     $reset_link = "http://localhost:81/websiteeconomic/reset_password.php?token=" . $token;
 
-    // Gửi email chứa link reset bằng PHPMailer
+  
     $mail = new PHPMailer(true);
 
     try {
-      // Cài đặt server gửi email
+    
       $mail->isSMTP();
       $mail->Host       = 'smtp.gmail.com';
       $mail->SMTPAuth   = true;
       $mail->Username   = 'phanquocthinh004@gmail.com';
-      $mail->Password   = 'rvkv tbip rcjb ztpb'; // Mật khẩu ứng dụng
+      $mail->Password   = 'rvkv tbip rcjb ztpb'; 
       $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
       $mail->Port       = 587;
 
-      // Người nhận
+     
       $mail->setFrom('phanquocthinh004@gmail.com', 'Quoc Thinh');
-      $mail->addAddress($email); // Gửi email đến người dùng
+      $mail->addAddress($email); 
 
-      // Nội dung email
+     
       $email_template = '
                 <!DOCTYPE html>
 <html lang="en">
@@ -136,12 +141,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <p>Hello,</p>
             <p>We detected an unusual sign-in attempt to your QT-Store account. If this was you, please click the link below to verify your identity and complete your sign-in:</p>
             
-            <div class="center-button"> <!-- Thêm div để canh giữa -->
-                <a href="http://localhost:81/websiteeconomic/reset_password.php?token=">Verify Your Identity</a>
+            <div class="center-button"> 
+                <a href="' . $reset_link . '" class="reset-link">Verify Your Identity</a>
             </div>
             
             <p>(Note: This link will expire 10 minutes after it was sent.)</p>
-            <p>If you did not request this, please <a href="https://your-website.com/reset-password">reset your password</a> immediately.</p>
+            <p>If you did not request this, please <a href=" "http://localhost:81/websiteeconomic/reset_password.php?token=" ">reset your password</a> immediately.</p>
             <p>For any further assistance, feel free to contact our <a href="https://your-website.com/support">Support Team</a>.</p>
         </div>
         <div class="footer">
@@ -154,14 +159,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             ';
 
-      // Nội dung email
+    
       $mail->isHTML(true);
       $mail->Subject = 'Password Reset Request';
       $mail->Body    = $email_template;
 
       $mail->send();
 
-      // Thiết lập thông báo hiển thị SweetAlert
+    
       $showAlert = true;
       $alertMessage = 'A password reset link has been sent to your email.';
       $alertType = 'success';
@@ -237,7 +242,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
   </section>
 
-  <!-- Hiển thị SweetAlert nếu có -->
+
   <?php if ($showAlert): ?>
     <script>
       Swal.fire({
@@ -245,9 +250,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         icon: '<?php echo $alertType; ?>',
         confirmButtonText: 'OK'
       }).then((result) => {
-        // Chuyển hướng người dùng sau khi nhấn OK
+  
         if (result.isConfirmed) {
-          window.location.href = "login.php"; // Chuyển hướng đến trang chủ hoặc trang bạn muốn
+          window.location.href = "login.php"; 
         }
       });
     </script>

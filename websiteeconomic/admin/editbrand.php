@@ -46,7 +46,7 @@ if (isset($_POST['btnUpdate'])) {
     <!-- Custom CSS -->
     <style>
         .container {
-            max-width: 800px; /* Increase container width */
+            max-width: 800px; 
         }
         .card-header {
             background-color: #007bff;

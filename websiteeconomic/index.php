@@ -3,11 +3,11 @@ session_start();
 $is_homepage = true;
 require_once('components/header.php');
 require_once('./db/conn.php');
-// Check if the user is logged in and has the 'user' role
+
 if (isset($_SESSION['user_id'])) {
     $user_id = $_SESSION['user_id'];
 
-    // Fetch the user role from the database
+  
     $sql_str = "
     SELECT r.role_name AS role_name 
         FROM user_roles ur
@@ -17,10 +17,10 @@ if (isset($_SESSION['user_id'])) {
     $result = mysqli_query($conn, $sql_str);
     $role_row = mysqli_fetch_assoc($result);
 
-    // Kiểm tra và gán giá trị cho biến $user_role
+ 
     $user_role = $role_row ? $role_row['role_name'] : null;
 } else {
-    // Người dùng chưa đăng nhập, gán giá trị null cho $user_role
+ 
     $user_role = null;
 }
 
@@ -246,15 +246,15 @@ require_once('components/header.php');
                         <div class="featured__item__pic set-bg" data-setbg="<?= "admin/" . $anh_arr[0] ?>">
                             <ul class="featured__item__pic__hover">
                             <?php 
-                        // Kiểm tra vai trò người dùng và số lượng sản phẩm trong kho
+                  
                         if ($user_role == 'User' && $row['stock'] > 0) { 
                         ?>
-                            <!-- Hiển thị nút thêm vào giỏ hàng nếu sản phẩm còn hàng -->
+                      
                             <li><a href="#" class="add-to-cart" data-id="<?= $row['pid'] ?>" data-qty="1"><i class="fa fa-shopping-cart"></i></a></li>
                         <?php 
                         } else if ($row['stock'] == 0) { 
                         ?>
-                            <!-- Hiển thị thông báo hết hàng nếu không còn sản phẩm -->
+                        
                             <li><span style="color: red;">Currently out of stock</span></li>
                         <?php 
                         } 
@@ -320,15 +320,15 @@ require_once('components/header.php');
                         <div class="featured__item__pic set-bg" data-setbg="<?= "admin/" . $anh_arr[0] ?>">
                             <ul class="featured__item__pic__hover">
                             <?php 
-                        // Kiểm tra vai trò người dùng và số lượng sản phẩm trong kho
+                      
                         if ($user_role == 'User' && $row['stock'] > 0) { 
                         ?>
-                            <!-- Hiển thị nút thêm vào giỏ hàng nếu sản phẩm còn hàng -->
+                      
                             <li><a href="#" class="add-to-cart" data-id="<?= $row['pid'] ?>" data-qty="1"><i class="fa fa-shopping-cart"></i></a></li>
                         <?php 
                         } else if ($row['stock'] == 0) { 
                         ?>
-                            <!-- Hiển thị thông báo hết hàng nếu không còn sản phẩm -->
+                         
                             <li><span style="color: red;">Currently out of stock</span></li>
                         <?php 
                         } 
@@ -338,7 +338,7 @@ require_once('components/header.php');
                         <div class="featured__item__text">
                             <h6><a class="view-detail" href="product.php?id=<?= $row['pid'] ?>"><?= $row['pname'] ?></a></h6>
 
-                            <!-- Display star rating -->
+                         
                             <div class="rating">
                                 <?php for ($i = 1; $i <= 5; $i++) { ?>
                                     <i class="fa fa-star<?= $i <= round($row['avg_rating']) ? '' : '-o' ?>" style="color: gold;"></i>

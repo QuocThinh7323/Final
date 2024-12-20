@@ -2,7 +2,7 @@
 session_start();
 require_once('../db/conn.php');
 
-// // Kiểm tra quyền quản trị
+
 // if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
 //     header("Location: index.php");
 //     exit();
@@ -11,7 +11,7 @@ require_once('../db/conn.php');
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id'])) {
     $feedback_id = $_GET['id']; 
 
-    // Xóa feedback từ bảng
+
     $sql = "DELETE FROM feedback WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $feedback_id);

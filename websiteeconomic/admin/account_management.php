@@ -60,7 +60,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
         .table-wrapper {
     margin: 20px auto;
-    max-width: 1200px; /* Điều chỉnh giá trị này tùy theo nhu cầu */
+    max-width: 1200px; 
     background: #fff;
     padding: 20px;
     border-radius: 8px;

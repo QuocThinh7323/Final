@@ -1,9 +1,9 @@
 <?php
 session_start();
-$is_homepage = false; // This is not the homepage
+$is_homepage = false; 
 require_once('components/header.php');
 require_once('./db/conn.php');
-// Kiểm tra nếu người dùng đã đăng nhập và có vai trò 'user'
+
 $user_role = isset($_SESSION['user_role']) ? $_SESSION['user_role'] : null;
 // Check if the category ID is set in the query string
 if (isset($_GET['id'])) {

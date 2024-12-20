@@ -1,8 +1,8 @@
 <?php
-// connect.php - Replace with your actual connection details
+
 require_once('../db/conn.php');
 
-// Lấy tất cả các vai trò từ bảng roles
+
 $roles_stmt = $pdo->query("SELECT * FROM roles");
 $roles = $roles_stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -13,31 +13,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $phone_number = $_POST['phone_number'];
     $email = $_POST['email'];
     $address = $_POST['address'];
-    $selected_role = $_POST['role'] ?? null; // Lấy vai trò đã chọn
+    $selected_role = $_POST['role'] ?? null; 
 
-    // Xử lý tải lên ảnh đại diện
+    
     $avatar = '';
     if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] == UPLOAD_ERR_OK) {
         $avatar = '../uploads/' . basename($_FILES['avatar']['name']);
         move_uploaded_file($_FILES['avatar']['tmp_name'], $avatar);
     }
 
-    // Câu lệnh SQL để chèn tài khoản mới vào bảng users
+ 
     $sql = "INSERT INTO users (username, full_name, password, phone_number, email, avatar, address) VALUES (?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("sssssss", $username, $full_name, $password, $phone_number, $email, $avatar, $address);
 
     if ($stmt->execute()) {
-        // Lấy ID của tài khoản mới được thêm vào
+     
         $new_user_id = $stmt->insert_id;
 
-        // Chèn vai trò đã chọn vào bảng user_roles nếu có
+       
         if ($selected_role) {
             $role_stmt = $pdo->prepare("INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)");
             $role_stmt->execute([$new_user_id, $selected_role]);
         }
 
-        // Chuyển hướng đến trang account_management.php sau khi thêm thành công
+       
         header("Location: account_management.php");
         exit();
     } else {
@@ -145,25 +145,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <script>
         document.getElementById('accountForm').addEventListener('submit', function(event) {
             const errorDiv = document.getElementById('error');
-            errorDiv.innerHTML = ''; // Clear previous errors
+            errorDiv.innerHTML = ''; 
             let errors = [];
 
             const phoneNumber = document.querySelector('input[name="phone_number"]').value;
             const email = document.querySelector('input[name="email"]').value;
 
-            // Basic phone number validation
+         
             const phoneRegex = /^[0-9]{10,11}$/;
             if (!phoneRegex.test(phoneNumber)) {
                 errors.push('Invalid phone number format. Must be 10-11 digits.');
             }
 
-            // Basic email validation
+          
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 errors.push('Invalid email format.');
             }
 
-            // Show errors if any
+           
             if (errors.length > 0) {
                 event.preventDefault();
                 errorDiv.innerHTML = errors.join('<br>');

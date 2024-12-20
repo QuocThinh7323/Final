@@ -1,5 +1,5 @@
 <?php
-// edit_account.php - Editing an existing account
+
 require('../db/conn.php');
 
 $user_id = $_GET['user_id'];
@@ -14,19 +14,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'];
     $address = $_POST['address'];
 
-    // Kiểm tra xem có mật khẩu mới không
+   
     $password_set = !empty($_POST['password']);
     if ($password_set) {
         $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
     }
 
-    // Kiểm tra xem có tệp ảnh mới được tải lên không
+   
     if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] == UPLOAD_ERR_OK) {
-        // Lưu tệp ảnh mới
+       
         $avatar = '../uploads/' . basename($_FILES['avatar']['name']);
         move_uploaded_file($_FILES['avatar']['tmp_name'], $avatar);
     } else {
-        // Sử dụng ảnh hiện tại nếu không tải lên ảnh mới
+       
         $avatar = $user['avatar'];
     }
 

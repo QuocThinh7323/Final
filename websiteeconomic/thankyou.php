@@ -65,7 +65,7 @@ $order_details_result = $order_details_stmt->get_result();
 </head>
 <body>
 
-<section class="breadcrumb-section set-bg" data-setbg="img/banner/bannersale1.jpg">
+<section class="breadcrumb-section set-bg" data-setbg="img/banner/bannerbackround.jpeg">
     <div class="container">
         <div class="row">
             <div class="col-lg-12 text-center">
@@ -126,8 +126,9 @@ $order_details_result = $order_details_stmt->get_result();
     </div>
 </section>
 
-<?php require_once('components/footer.php'); ?>
+
 
 <script src="js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+<?php require_once('components/footer.php'); ?>
